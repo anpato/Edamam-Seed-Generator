@@ -2,7 +2,7 @@ const fs = require('fs')
 const axios = require('axios')
 const dotenv = require('dotenv')
 dotenv.config()
-const queries = []
+const queries = ['chicken', 'beef']
 
 function read(query) {
   if (!queries.length) {
@@ -17,7 +17,7 @@ function read(query) {
       for (let i = 0; i < query.length; i++) {
         const resp = await axios.get(`https://api.edamam.com/search?q=${query[i]}&app_id=${process.env.APP_ID}&app_key=${process.env.APP_KEY}
      `)
-        file.data.push(...resp.data.hits)
+        file.data = filterItems(resp.data.hits)
       }
       console.log(`Fetched ${file.data.length} entries from the api.`)
       writeFiles(file.data)
@@ -28,7 +28,7 @@ function read(query) {
 read(queries)
 
 function writeFiles(data) {
-  fs.writeFile('recipes.json', JSON.stringify(data), err => {
+  fs.writeFile('recipes.json', JSON.stringify(data), 'utf8', err => {
     if (err) throw err
     if (data.length)
       console.log('Finished writing files, check recipes.json for output.')
@@ -36,4 +36,10 @@ function writeFiles(data) {
       console.log('Created empty container for incoming data.')
     }
   })
+}
+
+function filterItems(newItems) {
+  const returnedData = []
+  newItems.forEach(item => returnedData.push(item['recipe']))
+  return returnedData
 }
